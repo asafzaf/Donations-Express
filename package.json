@@ -1,0 +1,21 @@
+{
+  "name": "donations-express",
+  "version": "1.0.0",
+  "description": "Donations Express",
+  "main": "index.js",
+  "directories": {
+    "test": "jest"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^25.5.4",
+    "supertest": "^6.3.4"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
