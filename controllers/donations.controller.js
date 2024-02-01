@@ -1,5 +1,7 @@
 const { Donation } = require("../models/donations.model");
-// const { donationsRepository } = require("../repositories/donations.repository");
+const EventEmmiter = require("events");
+const { ServerError, NotFoundError, BadRequestError } = require("../errors/errors");
+
 
 exports.donationsController = {
   getAllDonations: async (req, res) => {
@@ -14,17 +16,25 @@ exports.donationsController = {
         },
       });
     } catch (error) {
-      res.status(400).json({
-        message: "Error retrieving donations",
-        status: "failed",
-        error: error.message,
+      const err = new ServerError("getAll");
+      res.status(err.statusCode).json({
+        name: err.name,
+        message: err.message,
       });
     }
   },
 
   getDonation: async (req, res) => {
     try {
+      if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
+        console.log("id is null");
+        throw new BadRequestError("id");
+      }
+      console.log("id is not null");
       const donation = await Donation.findById(req.params.id);
+      if (!donation) {
+        throw new NotFoundError("Donation");
+      }
       res.status(200).json({
         message: "Donation retrieved successfully",
         status: "success",
@@ -33,10 +43,10 @@ exports.donationsController = {
         },
       });
     } catch (error) {
-      res.status(400).json({
-        message: "Error retrieving donation",
-        status: "failed",
-        error: error.message,
+      const err = new BadRequestError("id");
+      res.status(err.statusCode).json({
+        name: err.name,
+        message: err.message,
       });
     }
   },
@@ -54,10 +64,10 @@ exports.donationsController = {
         });
       });
     } catch (error) {
-      res.status(400).json({
-        message: "Error creating donation",
-        status: "failed",
-        error: error.message,
+      const err = new BadRequestError("params");
+      res.status(err.statusCode).json({
+        name: err.name,
+        message: err.message,
       });
     }
   },
@@ -77,27 +87,39 @@ exports.donationsController = {
         },
       });
     } catch (error) {
-      res.status(400).json({
-        message: "Error updating donation",
-        status: "failed",
-        error: error.message,
+      const err = new BadRequestError("params");
+      res.status(err.statusCode).json({
+        name: err.name,
+        message: err.message,
       });
     }
   },
 
   deleteDonation: async (req, res) => {
     try {
+      if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
+        console.log("id is null");
+        throw new BadRequestError("id");
+      }
+      console.log("donation 1");
       const donation = await Donation.findByIdAndDelete(req.params.id);
+      console.log("donation 2");
+      if (!donation) {
+        console.log("donation is null");
+        throw new NotFoundError("Donation");
+      }
       res.status(204).json({
         message: "Donation deleted successfully",
         status: "success",
         data: null,
       });
     } catch (error) {
-      res.status(400).json({
-        message: "Error deleting donation",
-        status: "failed",
-        error: error.message,
+      if (error.name === "CastError") {
+        error = new BadRequestError("id");
+      }
+      res.status(error.statusCode).json({
+        name: error.name,
+        message: error.message,
       });
     }
   },
