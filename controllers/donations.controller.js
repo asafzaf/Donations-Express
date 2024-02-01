@@ -3,8 +3,13 @@ const EventEmmiter = require("events");
 const { ServerError, NotFoundError, BadRequestError } = require("../errors/errors");
 
 
-exports.donationsController = {
-  getAllDonations: async (req, res) => {
+module.exports = class donationsController extends EventEmmiter {
+  constructor() {
+    super();
+    this.hello = 'hello world';
+  }
+
+  getAllDonations = async (req, res) => {
     try {
       const donations = await Donation.find();
       res.status(200).json({
@@ -22,9 +27,9 @@ exports.donationsController = {
         message: err.message,
       });
     }
-  },
+  };
 
-  getDonation: async (req, res) => {
+  getDonation = async (req, res) => {
     try {
       if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
         console.log("id is null");
@@ -49,9 +54,9 @@ exports.donationsController = {
         message: err.message,
       });
     }
-  },
+  };
 
-  createDonation: (req, res) => {
+  createDonation = (req, res) => {
     try {
       const newDonation = new Donation(req.body);
       newDonation.save().then(() => {
@@ -70,15 +75,18 @@ exports.donationsController = {
         message: err.message,
       });
     }
-  },
+  };
 
-  putDonation: async (req, res) => {
+  putDonation = async (req, res) => {
     try {
       const donation = await Donation.findByIdAndUpdate(
         req.params.id,
         req.body,
         { new: true, runValidators: true }
       );
+      if (!donation) {
+        throw new NotFoundError("Donation");
+      }
       res.status(200).json({
         message: "Donation updated successfully",
         status: "success",
@@ -87,15 +95,17 @@ exports.donationsController = {
         },
       });
     } catch (error) {
-      const err = new BadRequestError("params");
-      res.status(err.statusCode).json({
-        name: err.name,
-        message: err.message,
+      if (error.name === "CastError") {
+        error = new BadRequestError("id");
+      }
+      res.status(error.statusCode).json({
+        name: error.name,
+        message: error.message,
       });
     }
-  },
+  };
 
-  deleteDonation: async (req, res) => {
+  deleteDonation = async (req, res) => {
     try {
       if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
         console.log("id is null");
@@ -122,5 +132,5 @@ exports.donationsController = {
         message: error.message,
       });
     }
-  },
+  };
 };
