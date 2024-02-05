@@ -1,17 +1,23 @@
 const { Donation } = require("../models/donations.model");
 const EventEmmiter = require("events");
-const { ServerError, NotFoundError, BadRequestError } = require("../errors/errors");
+const {
+  ServerError,
+  NotFoundError,
+  BadRequestError,
+} = require("../errors/errors");
+const DonationsRepository = require("../repositories/donations.repository");
 
+const donationsRepository = new DonationsRepository();
 
 module.exports = class donationsController extends EventEmmiter {
   constructor() {
     super();
-    this.hello = 'hello world';
+    this.hello = "hello world";
   }
 
   getAllDonations = async (req, res) => {
     try {
-      const donations = await Donation.find();
+      const donations = await donationsRepository.find();
       res.status(200).json({
         message: "Donations retrieved successfully",
         status: "success",
@@ -31,12 +37,15 @@ module.exports = class donationsController extends EventEmmiter {
 
   getDonation = async (req, res) => {
     try {
-      if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
-        console.log("id is null");
+      if (
+        req.params.id === null ||
+        req.params.id === undefined ||
+        req.params.id === "" ||
+        req.params.id === " "
+      ) {
         throw new BadRequestError("id");
       }
-      console.log("id is not null");
-      const donation = await Donation.findById(req.params.id);
+      const donation = await donationsRepository.retrieve(req.params.id);
       if (!donation) {
         throw new NotFoundError("Donation");
       }
@@ -48,25 +57,27 @@ module.exports = class donationsController extends EventEmmiter {
         },
       });
     } catch (error) {
-      const err = new BadRequestError("id");
-      res.status(err.statusCode).json({
-        name: err.name,
-        message: err.message,
+      if (error.name === "TypeError") {
+        error = new BadRequestError("id");
+      } else {
+        error = new ServerError("getOne");
+      }
+      res.status(error.statusCode).json({
+        name: error.name,
+        message: error.message,
       });
     }
   };
 
-  createDonation = (req, res) => {
+  createDonation = async (req, res) => {
     try {
-      const newDonation = new Donation(req.body);
-      newDonation.save().then(() => {
-        res.status(201).json({
-          message: "Donation created successfully",
-          status: "success",
-          data: {
-            donation: newDonation,
-          },
-        });
+      const newDonation = await donationsRepository.create(req.body);
+      res.status(201).json({
+        message: "Donation created successfully",
+        status: "success",
+        data: {
+          donation: newDonation,
+        },
       });
     } catch (error) {
       const err = new BadRequestError("params");
@@ -79,11 +90,10 @@ module.exports = class donationsController extends EventEmmiter {
 
   putDonation = async (req, res) => {
     try {
-      const donation = await Donation.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true, runValidators: true }
-      );
+      const donation = await donationsRepository.put(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
       if (!donation) {
         throw new NotFoundError("Donation");
       }
@@ -97,6 +107,8 @@ module.exports = class donationsController extends EventEmmiter {
     } catch (error) {
       if (error.name === "CastError") {
         error = new BadRequestError("id");
+      } else {
+        error = new ServerError("put");
       }
       res.status(error.statusCode).json({
         name: error.name,
@@ -107,15 +119,18 @@ module.exports = class donationsController extends EventEmmiter {
 
   deleteDonation = async (req, res) => {
     try {
-      if (req.params.id === null || req.params.id === undefined || req.params.id === "" || req.params.id === " "){
-        console.log("id is null");
+      if (
+        req.params.id === null ||
+        req.params.id === undefined ||
+        req.params.id === "" ||
+        req.params.id === " "
+      ) {
+
         throw new BadRequestError("id");
       }
-      console.log("donation 1");
-      const donation = await Donation.findByIdAndDelete(req.params.id);
-      console.log("donation 2");
+
+      const donation = await donationsRepository.delete(req.params.id);
       if (!donation) {
-        console.log("donation is null");
         throw new NotFoundError("Donation");
       }
       res.status(204).json({
