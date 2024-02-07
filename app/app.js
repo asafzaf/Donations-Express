@@ -2,7 +2,7 @@ const express = require("express");
 const logger = require("morgan");
 const { donationsRouter } = require("../routers/donations.router");
 
-const { ServerError, NotFoundError, BadRequestError } = require("../errors/errors");
+const { NotFoundError } = require("../errors/errors");
 
 const app = express();
 const port = process.env.PORT || 8080;
