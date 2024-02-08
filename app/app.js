@@ -1,6 +1,6 @@
 const express = require("express");
 const logger = require("morgan");
-const { NODE_ENV } = require("./constants");
+const { NODE_ENV } = require("../constants");
 const { donationsRouter } = require("../routers/donations.router");
 
 const { NotFoundError } = require("../errors/errors");
