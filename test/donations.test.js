@@ -1,11 +1,12 @@
+/* eslint-disable no-undef */
 require("dotenv").config();
 const request = require("supertest");
 const { server, app } = require("../app/app");
 
 const donationsRepository = require("../repositories/donations.repository");
-const { BadRequestError } = require("../errors/errors");
 
 jest.mock("../repositories/donations.repository");
+
 afterAll(() => {
   server.close();
 });
@@ -60,7 +61,7 @@ describe("GET /api/donations/records", () => {
         __v: 0,
       },
     ];
-    // }
+
     donationsRepository.find.mockResolvedValue(mockItems);
 
     const res = await request(app).get("/api/donations/records");
@@ -101,31 +102,33 @@ describe("GET /api/donations/records/:id", () => {
 
     const mockResponse = {
       message: "Donation retrieved successfully",
-        status: "success",
-        data: {
-          donation: mockItem,
-        },
-    }
+      status: "success",
+      data: {
+        donation: mockItem,
+      },
+    };
 
     donationsRepository.retrieve.mockResolvedValue(mockItem);
-    const res = await request(app).get("/api/donations/items/65b7fe322378c84fb803d307");
+    const res = await request(app).get(
+      "/api/donations/items/65b7fe322378c84fb803d307"
+    );
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual(mockResponse);
   });
 
   it("should return item not found error", async () => {
-    const id = '65b7fe322378c84fb803d305';
+    const id = "65b7fe322378c84fb803d305";
 
     const mockResponse = {
       name: "NotFoundError",
-      message: `Donation with id ${id} not found.`
-    }
+      message: `Donation with id ${id} not found.`,
+    };
 
     donationsRepository.retrieve.mockResolvedValue([]);
     const res = await request(app).get(`/api/donations/items/${id}`);
     expect(res.statusCode).toEqual(404);
     expect(res.body).toEqual(mockResponse);
-  }); 
+  });
 });
 
 describe("POST /api/donations/items", () => {
@@ -137,7 +140,7 @@ describe("POST /api/donations/items", () => {
     const mockItem = {
       amount: 222,
       name: "John Doe",
-      email: "johnDoe@do.com"
+      email: "johnDoe@do.com",
     };
 
     const mockResponse = {
@@ -152,18 +155,17 @@ describe("POST /api/donations/items", () => {
     const res = await request(app).post("/api/donations/items").send(mockItem);
     expect(res.statusCode).toEqual(201);
     expect(res.body).toEqual(mockResponse);
-
   });
 
   it("should return bad request error - email not provided", async () => {
     const mockItem = {
       amount: 222,
-      name: "John Doe"
+      name: "John Doe",
     };
 
     const mockResponse = {
       name: "BadRequestError",
-      message: "please provide a valid email."
+      message: "please provide a valid email.",
     };
 
     donationsRepository.create.mockResolvedValue(mockItem);
@@ -175,12 +177,12 @@ describe("POST /api/donations/items", () => {
   it("should return bad request error - name not provided", async () => {
     const mockItem = {
       amount: 222,
-      email: "JohnDoe@do.com"
+      email: "JohnDoe@do.com",
     };
 
     const mockResponse = {
       name: "BadRequestError",
-      message: "please provide a valid name."
+      message: "please provide a valid name.",
     };
 
     donationsRepository.create.mockResolvedValue(mockItem);
@@ -192,14 +194,13 @@ describe("POST /api/donations/items", () => {
   it("should return bad request error - amount not provided", async () => {
     const mockItem = {
       name: "John Doe",
-      email: "JohnDoe@do.com"
+      email: "JohnDoe@do.com",
     };
 
     const mockResponse = {
       name: "BadRequestError",
-      message: "please provide a valid amount."
+      message: "please provide a valid amount.",
     };
-
 
     donationsRepository.create.mockResolvedValue(mockItem);
     const res = await request(app).post("/api/donations/items").send(mockItem);
@@ -211,12 +212,12 @@ describe("POST /api/donations/items", () => {
     const mockItem = {
       amount: 222,
       name: "John Doe",
-      email: "JohnDo@do.com" 
+      email: "JohnDo@do.com",
     };
 
     const mockResponse = {
       name: "ServerError",
-      message: "Internal Server Error - Couldn't post donations."
+      message: "Internal Server Error - Couldn't post donations.",
     };
 
     donationsRepository.create.mockResolvedValue(null);
@@ -224,7 +225,6 @@ describe("POST /api/donations/items", () => {
     expect(res.statusCode).toEqual(500);
     expect(res.body).toEqual(mockResponse);
   });
-
 });
 
 describe("PUT /api/donations/items/:id", () => {
@@ -233,17 +233,10 @@ describe("PUT /api/donations/items/:id", () => {
   });
 
   it("should update a donation", async () => {
-    const mockItem = {
-      _id: "65b7fe322378c84fb803d307",
-      amount: 222,
-      name: "John Doe",
-      email: "johnDoe@do.com"
-    };
-
     const newMockItem = {
       amount: 333,
       name: "Jane Doa",
-      email: "janeDoa@da.com"
+      email: "janeDoa@da.com",
     };
 
     const mockResponse = {
@@ -255,106 +248,139 @@ describe("PUT /api/donations/items/:id", () => {
     };
 
     donationsRepository.put.mockResolvedValue(newMockItem);
-    const res = await request(app).put("/api/donations/items/65b7fe322378c84fb803d307").send(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual(mockResponse);
   });
 
-  // it("should return bad request error - name not provided", async () => {
-  //   const mockItem = {
-  //     _id: "65b7fe322378c84fb803d307",
-  //     amount: 222,
-  //     name: "John Doe",
-  //     email: "johnDoe@do.com"
-  //   };
+  it("should return bad request error - name not provided", async () => {
+    const newMockItem = {
+      amount: 333,
+      email: "jajaDa@da.com",
+    };
 
-  //   const newMockItem = {
-  //     amount: 333,
-  //     email: "jajaDa@da.com"
-  //   };
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid name.",
+    };
 
-  //   const mockResponse = {
-  //     name: "BadRequestError",
-  //     message: "Please provide a valid name."
-  //   };
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
 
-  //   donationsRepository.put.mockResolvedValue(newMockItem);
-  //   const res = await request(app).put("/api/donations/items/65b7fe322378c84fb803d307").send(newMockItem);
-  //   expect(res.statusCode).toEqual(400);
-  //   expect(res.body).toEqual(mockResponse);
-  // });
+  it("should return bad request error - email not provided", async () => {
+    const newMockItem = {
+      amount: 333,
+      name: "Jane Doa",
+    };
 
-  // it("should return bad request error - email not provided", async () => {
-  //   const mockItem = {
-  //     _id: "65b7fe322378c84fb803d307",
-  //     amount: 222,
-  //     name: "John Doe",
-  //     email: "johnDoe@do.com"
-  //   };
-    
-  //   const newMockItem = {
-  //     amount: 333,
-  //     name: "Jane Doa"
-  //   };
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid email.",
+    };
 
-  //   const mockResponse = {
-  //     name: "BadRequestError",
-  //     message: "Please provide a valid email."
-  //   };
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
 
-  //   donationsRepository.put.mockResolvedValue(newMockItem);
-  //   const res = await request(app).put("/api/donations/items/65b7fe322378c84fb803d307").send(newMockItem);
-  //   expect(res.statusCode).toEqual(400);
-  //   expect(res.body).toEqual(mockResponse);
+  it("should return bad request error - amount not provided", async () => {
+    const newMockItem = {
+      name: "Jane Doa",
+      email: "jajaDa@da.com",
+    };
 
-  // });
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid amount.",
+    };
 
-  // it("should return bad request error - amount not provided", async () => {
-  //   const mockItem = {
-  //     _id: "65b7fe322378c84fb803d307",
-  //     amount: 222,
-  //     name: "John Doe",
-  //     email: "johnDoe@do.com"
-  //   };
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
 
-  //   const newMockItem = {
-  //     name: "Jane Doa",
-  //     email: "jajaDa@da.com"
-  //   };
-    
-  //   const mockResponse = {
-  //     name: "BadRequestError",
-  //     message: "Please provide a valid amount."
-  //   };
+  it("should return not found error", async () => {
+    const mockItem = {
+      _id: "65b7fe322378c84fb803d307",
+      amount: 222,
+      name: "John Doe",
+      email: "johnDoe@do.com",
+    };
 
-  //   donationsRepository.put.mockResolvedValue(newMockItem);
-  //   const res = await request(app).put("/api/donations/items/65b7fe322378c84fb803d307").send(newMockItem);
-  //   expect(res.statusCode).toEqual(400);
-  //   expect(res.body).toEqual(mockResponse);
-  // });
+    const newMockItem = {
+      amount: 333,
+      name: "Jane Doa",
+      email: "jajaDa@do.com",
+    };
 
-  // it("should return not found error", async () => {
-  //   const mockItem = {
-  //     _id: "65b7fe322378c84fb803d307",
-  //     amount: 222,
-  //     name: "John Doe",
-  //     email: "johnDoe@do.com"
-  //   };
+    const mockResponse = {
+      name: "NotFoundError",
+      message: `Donation not found.`,
+    };
 
-  //   const newMockItem = {
-  //     amount: 333,
-  //     name: "Jane Doa",
-  //     email: "jajaDa@do.com"
-  //   };
+    donationsRepository.put.mockResolvedValue(null);
+    const res = await request(app)
+      .put(`/api/donations/items/${mockItem._id}`)
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toEqual(mockResponse);
+  });
+});
 
-  //   const mockResponse = {
-  //     name: "NotFoundError",
-  //     message: `Donation with id ${mockItem._id} not found.`
-  //   };
+describe("DELETE /api/donations/items/:id", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  //   donationsRepository.put.mockResolvedValue([]);
-  //   const res = await request(app).put(`/api/donations/items/${mockItem._id}`).send(newMockItem);
-  //   expect(res.statusCode).toEqual(404);
-  //   expect(res.body).toEqual(mockResponse);
-  // });
+  it("should delete a donation", async () => {
+    const mockItem = {
+      _id: "65b7fe322378c84fb803d307",
+      amount: 222,
+      name: "John Doe",
+      email: "",
+    };
+
+    const mockResponse = {};
+
+    donationsRepository.delete.mockResolvedValue([]);
+    const res = await request(app).delete(
+      `/api/donations/items/${mockItem._id}`
+    );
+    expect(res.statusCode).toEqual(204);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return not found error", async () => {
+    const mockItem = {
+      _id: "65b7fe322378c84fb803d307",
+      amount: 222,
+      name: "John Doe",
+      email: "",
+    };
+
+    const mockResponse = {
+      name: "NotFoundError",
+      message: `Donation not found.`,
+    };
+
+    donationsRepository.delete.mockResolvedValue(null);
+    const res = await request(app).delete(
+      `/api/donations/items/${mockItem._id}`
+    );
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toEqual(mockResponse);
+  });
 });
