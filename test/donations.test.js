@@ -2,6 +2,7 @@
 require("dotenv").config();
 const request = require("supertest");
 const { server, app } = require("../app/app");
+const { ServerError } = require("../errors/errors");
 
 const donationsRepository = require("../repositories/donations.repository");
 
@@ -16,7 +17,7 @@ describe("GET /api/donations/records", () => {
     jest.clearAllMocks();
   });
 
-  it("should return all donations", async () => {
+  it("should return (200) all donations", async () => {
     const mockDonations = {
       message: "Donations retrieved successfully",
       status: "success",
@@ -69,7 +70,7 @@ describe("GET /api/donations/records", () => {
     expect(res.body).toEqual(mockDonations);
   });
 
-  it("should return not found error", async () => {
+  it("should return (404) NotFoundError", async () => {
     const mockItems = [];
 
     const mockResponse = {
@@ -83,6 +84,19 @@ describe("GET /api/donations/records", () => {
     expect(res.statusCode).toEqual(404);
     expect(res.body).toEqual(mockResponse);
   });
+
+  it("should return (500) ServerError", async () => {
+    const mockResponse = {
+      name: "ServerError",
+      message: "Internal Server Error - Couldn't getAll donations.",
+    };
+
+    donationsRepository.find.mockRejectedValue(new ServerError("getAll"));
+
+    const res = await request(app).get("/api/donations/records");
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toEqual(mockResponse);
+  });
 });
 
 describe("GET /api/donations/records/:id", () => {
@@ -90,7 +104,7 @@ describe("GET /api/donations/records/:id", () => {
     jest.clearAllMocks();
   });
 
-  it("should return specific donation", async () => {
+  it("should return (200) Specific donation", async () => {
     const mockItem = {
       _id: "65b7fe322378c84fb803d307",
       amount: 100,
@@ -116,7 +130,7 @@ describe("GET /api/donations/records/:id", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return item not found error", async () => {
+  it("should return (404) item NotFoundError", async () => {
     const id = "65b7fe322378c84fb803d305";
 
     const mockResponse = {
@@ -129,6 +143,34 @@ describe("GET /api/donations/records/:id", () => {
     expect(res.statusCode).toEqual(404);
     expect(res.body).toEqual(mockResponse);
   });
+
+  it("should return (400) BadRequestError", async () => {
+    const id = ":id";
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid id.",
+    };
+
+    donationsRepository.retrieve.mockResolvedValue([]);
+    const res = await request(app).get(`/api/donations/items/${id}`);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (500) ServerError", async () => {
+    const mockResponse = {
+      name: "ServerError",
+      message: "Internal Server Error - Couldn't get donations.",
+    };
+
+    donationsRepository.retrieve.mockRejectedValue(new ServerError("get"));
+    const res = await request(app).get(
+      "/api/donations/items/65b7fe322378c84fb803d307"
+    );
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toEqual(mockResponse);
+  });
 });
 
 describe("POST /api/donations/items", () => {
@@ -136,7 +178,7 @@ describe("POST /api/donations/items", () => {
     jest.clearAllMocks();
   });
 
-  it("should create a new donation", async () => {
+  it("should return (201) Create a new donation", async () => {
     const mockItem = {
       amount: 222,
       name: "John Doe",
@@ -157,7 +199,7 @@ describe("POST /api/donations/items", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return bad request error - email not provided", async () => {
+  it("should return (400) BadRequestError - email not provided", async () => {
     const mockItem = {
       amount: 222,
       name: "John Doe",
@@ -174,7 +216,7 @@ describe("POST /api/donations/items", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return bad request error - name not provided", async () => {
+  it("should return (400) BadRequestError - name not provided", async () => {
     const mockItem = {
       amount: 222,
       email: "JohnDoe@do.com",
@@ -191,7 +233,7 @@ describe("POST /api/donations/items", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return bad request error - amount not provided", async () => {
+  it("should return (400) BadRequestError - amount not provided", async () => {
     const mockItem = {
       name: "John Doe",
       email: "JohnDoe@do.com",
@@ -208,7 +250,7 @@ describe("POST /api/donations/items", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return ServerError", async () => {
+  it("should return (500) ServerError", async () => {
     const mockItem = {
       amount: 222,
       name: "John Doe",
@@ -232,7 +274,7 @@ describe("PUT /api/donations/items/:id", () => {
     jest.clearAllMocks();
   });
 
-  it("should update a donation", async () => {
+  it("should return (200) update a donation", async () => {
     const newMockItem = {
       amount: 333,
       name: "Jane Doa",
@@ -255,64 +297,7 @@ describe("PUT /api/donations/items/:id", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return bad request error - name not provided", async () => {
-    const newMockItem = {
-      amount: 333,
-      email: "jajaDa@da.com",
-    };
-
-    const mockResponse = {
-      name: "BadRequestError",
-      message: "please provide a valid name.",
-    };
-
-    donationsRepository.put.mockResolvedValue(newMockItem);
-    const res = await request(app)
-      .put("/api/donations/items/65b7fe322378c84fb803d307")
-      .send(newMockItem);
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
-  });
-
-  it("should return bad request error - email not provided", async () => {
-    const newMockItem = {
-      amount: 333,
-      name: "Jane Doa",
-    };
-
-    const mockResponse = {
-      name: "BadRequestError",
-      message: "please provide a valid email.",
-    };
-
-    donationsRepository.put.mockResolvedValue(newMockItem);
-    const res = await request(app)
-      .put("/api/donations/items/65b7fe322378c84fb803d307")
-      .send(newMockItem);
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
-  });
-
-  it("should return bad request error - amount not provided", async () => {
-    const newMockItem = {
-      name: "Jane Doa",
-      email: "jajaDa@da.com",
-    };
-
-    const mockResponse = {
-      name: "BadRequestError",
-      message: "please provide a valid amount.",
-    };
-
-    donationsRepository.put.mockResolvedValue(newMockItem);
-    const res = await request(app)
-      .put("/api/donations/items/65b7fe322378c84fb803d307")
-      .send(newMockItem);
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
-  });
-
-  it("should return not found error", async () => {
+  it("should return (404) item NotFoundError", async () => {
     const mockItem = {
       _id: "65b7fe322378c84fb803d307",
       amount: 222,
@@ -338,6 +323,83 @@ describe("PUT /api/donations/items/:id", () => {
     expect(res.statusCode).toEqual(404);
     expect(res.body).toEqual(mockResponse);
   });
+
+  it("should return (400) BadRequestError - name not provided", async () => {
+    const newMockItem = {
+      amount: 333,
+      email: "jajaDa@da.com",
+    };
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid name.",
+    };
+
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (400) BadRequestError - email not provided", async () => {
+    const newMockItem = {
+      amount: 333,
+      name: "Jane Doa",
+    };
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid email.",
+    };
+
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (400) BadRequestError - amount not provided", async () => {
+    const newMockItem = {
+      name: "Jane Doa",
+      email: "jajaDa@da.com",
+    };
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid amount.",
+    };
+
+    donationsRepository.put.mockResolvedValue(newMockItem);
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (500) ServerError", async () => {
+    const newMockItem = {
+      amount: 333,
+      name: "Jane Doa",
+      email: "fakeMail@mail.com",
+    };
+
+    const mockResponse = {
+      name: "ServerError",
+      message: "Internal Server Error - Couldn't put donations.",
+    };
+
+    donationsRepository.put.mockRejectedValue(new ServerError("put"));
+    const res = await request(app)
+      .put("/api/donations/items/65b7fe322378c84fb803d307")
+      .send(newMockItem);
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toEqual(mockResponse);
+  });
 });
 
 describe("DELETE /api/donations/items/:id", () => {
@@ -345,7 +407,7 @@ describe("DELETE /api/donations/items/:id", () => {
     jest.clearAllMocks();
   });
 
-  it("should delete a donation", async () => {
+  it("should return (204) Delete a donation", async () => {
     const mockItem = {
       _id: "65b7fe322378c84fb803d307",
       amount: 222,
@@ -363,7 +425,7 @@ describe("DELETE /api/donations/items/:id", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("should return not found error", async () => {
+  it("should return (404) NotFoundError", async () => {
     const mockItem = {
       _id: "65b7fe322378c84fb803d307",
       amount: 222,
@@ -381,6 +443,34 @@ describe("DELETE /api/donations/items/:id", () => {
       `/api/donations/items/${mockItem._id}`
     );
     expect(res.statusCode).toEqual(404);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (400) BadRequestError", async () => {
+    id = ":id";
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid id.",
+    };
+
+    donationsRepository.delete.mockResolvedValue(null);
+    const res = await request(app).delete(`/api/donations/items/${id}`);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (500) ServerError", async () => {
+    const mockResponse = {
+      name: "ServerError",
+      message: "Internal Server Error - Couldn't delete donations.",
+    };
+
+    donationsRepository.delete.mockRejectedValue(new ServerError("delete"));
+    const res = await request(app).delete(
+      "/api/donations/items/65b7fe322378c84fb803d307"
+    );
+    expect(res.statusCode).toEqual(500);
     expect(res.body).toEqual(mockResponse);
   });
 });
