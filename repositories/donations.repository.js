@@ -1,30 +1,25 @@
 const MongoDB = require("../db/donations.db");
+const db = new MongoDB();
 
-class DonationsRepository {
-  constructor() {
-    this.db = new MongoDB();
-    this.db.connectDB();
-  }
+module.exports = {
 
   find() {
-    return this.db.find();
-  }
+    return db.find();
+  },
 
   retrieve(id) {
-    return this.db.findById(id);
-  }
+    return db.findById(id);
+  },
 
   create(data) {
-    return this.db.create(data);
-  }
+    return db.create(data);
+  },
 
   put(id, data) {
     return this.db.put(id, data);
-  }
+  },
 
   delete(id) {
     return this.db.delete(id);
-  }
-}
-
-module.exports = DonationsRepository;
+  },
+};
