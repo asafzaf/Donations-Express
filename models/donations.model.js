@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const { Schema, model } = require('mongoose');
 
-const donationSchema = new mongoose.Schema({
+const donationSchema = new Schema({
     amount: {
         type: Number,
         required: true
@@ -19,4 +19,4 @@ const donationSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Donation', donationSchema);
+module.exports = model('Donation', donationSchema);
