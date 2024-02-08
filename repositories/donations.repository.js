@@ -1,12 +1,12 @@
 const MongoDB = require("../db/donations.db");
 
-module.exports = class DonationsRepository {
+class DonationsRepository {
   constructor() {
     this.db = new MongoDB();
+    this.db.connectDB();
   }
 
   find() {
-    console.log("find in donations.repository.js");
     return this.db.find();
   }
 
@@ -25,4 +25,6 @@ module.exports = class DonationsRepository {
   delete(id) {
     return this.db.delete(id);
   }
-};
+}
+
+module.exports = DonationsRepository;
