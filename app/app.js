@@ -1,26 +1,32 @@
 const express = require("express");
 const logger = require("morgan");
+const { NODE_ENV } = require("./constants");
 const { donationsRouter } = require("../routers/donations.router");
 
 const { NotFoundError } = require("../errors/errors");
 
 const app = express();
+// eslint-disable-next-line no-undef
 const port = process.env.PORT || 8080;
-
-module.exports = app;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(logger("dev"));
+
+if (NODE_ENV === "development") {
+  app.use(logger("dev"));
+}
 
 app.use("/api/donations", donationsRouter);
 
-app.all("*", (req, res, next) => {
+app.all("*", (req, res) => {
   const error = new NotFoundError(req.originalUrl);
-  next(error);
+  res.status(404).json({
+    name: error.name,
+    message: error.message,
+  });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   err.statusCode = err.statusCode || 500;
   err.name = err.name || "error";
 
@@ -30,6 +36,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+const server = app.listen(port, () => {
+  NODE_ENV == "test" ? null : console.log(`Server is running on port ${port}`);
 });
+
+module.exports = { app, server };

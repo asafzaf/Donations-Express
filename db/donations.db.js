@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
 const EventEmmiter = require("events");
-const connectionUrl = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_NAME}`;
+const {
+  DB_USER,
+  DB_PASS,
+  DB_HOST,
+  DB_NAME,
+  NODE_ENV,
+} = require("../constants");
+const connectionUrl = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}`;
 
 module.exports = class MongoDB extends EventEmmiter {
   constructor() {
@@ -12,15 +19,19 @@ module.exports = class MongoDB extends EventEmmiter {
     mongoose
       .connect(connectionUrl)
       .then(() => {
-        console.log("Connected to MongoDB");
+        NODE_ENV == "test" ? null : console.log("Connected to MongoDB");
       })
       .catch((error) => {
-        console.error("Error connecting to MongoDB:", error);
+        NODE_ENV == "test"
+          ? null
+          : console.error("Error connecting to MongoDB:", error);
       });
   }
+
   find() {
     return this.Model.find({});
   }
+
   findById(id) {
     return this.Model.findById(id);
   }
@@ -32,8 +43,9 @@ module.exports = class MongoDB extends EventEmmiter {
   }
 
   put(id, data) {
-    return this.Model.findByIdAndUpdate( id , data, {new: true});
+    return this.Model.findByIdAndUpdate(id, data, { new: true });
   }
+
   delete(id) {
     return this.Model.findByIdAndDelete(id);
   }
