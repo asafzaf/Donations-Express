@@ -14,7 +14,7 @@ module.exports = class donationsController extends EventEmmiter {
   getAllDonations = async (req, res) => {
     try {
       const donations = await donationsRepository.find();
-      if (!donations || donations.length === 0) {
+      if (!donations || Object.keys(donations).length === 0) {
         throw new NotFoundError("Donations");
       }
       return res.status(200).json({
@@ -36,9 +36,7 @@ module.exports = class donationsController extends EventEmmiter {
   getDonation = async (req, res) => {
     const { id } = req.params;
     try {
-      if (id === null || id === undefined || id === "" || id === " ") {
-        throw new BadRequestError("id");
-      }
+      checkId(id);
       const donation = await donationsRepository.retrieve(req.params.id);
       if (!donation || Object.keys(donation).length === 0) {
         throw new NotFoundError(`Donation with id ${id}`);
@@ -128,7 +126,15 @@ module.exports = class donationsController extends EventEmmiter {
 };
 
 const checkId = (id) => {
-  if (id === null || id === undefined || id === "" || id === " ") {
+  if (
+    id === null ||
+    id === undefined ||
+    id === "" ||
+    id === " " ||
+    id === 0 ||
+    id === "0" ||
+    id === ":id"
+  ) {
     throw new BadRequestError("id");
   }
 };
