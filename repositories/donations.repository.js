@@ -2,7 +2,6 @@ const MongoDB = require("../db/donations.db");
 const db = new MongoDB();
 
 module.exports = {
-
   find() {
     return db.find();
   },
