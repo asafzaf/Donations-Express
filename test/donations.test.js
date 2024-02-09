@@ -510,3 +510,23 @@ describe("DELETE /api/donations/items/:id", () => {
     expect(res.body).toEqual(mockResponse);
   });
 });
+
+describe("BROKEN URL Not Found respond", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should return (404) NotFoundError", async () => {
+    const mockUrl = "/api/donations/ite";
+
+    const mockResponse = {
+      name: "NotFoundError",
+      message: `${mockUrl} not found.`,
+    };
+
+    const res = await request(app).get(`${mockUrl}`);
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+});
