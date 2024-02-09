@@ -15,10 +15,10 @@ module.exports = {
   },
 
   put(id, data) {
-    return this.db.put(id, data);
+    return db.put(id, data);
   },
 
   delete(id) {
-    return this.db.delete(id);
+    return db.delete(id);
   },
 };
