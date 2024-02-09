@@ -250,6 +250,24 @@ describe("POST /api/donations/items", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
+  it("should return (400) BadRequestError - amount is not a number", async () => {
+    const mockItem = {
+      amount: "222",
+      name: "John Doe",
+      email: "johnDoe@doa.com"
+    }; 
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid amount value.",
+    };
+
+    donationsRepository.create.mockResolvedValue(mockItem);
+    const res = await request(app).post("/api/donations/items").send(mockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
   it("should return (500) ServerError", async () => {
     const mockItem = {
       amount: 222,
@@ -377,6 +395,24 @@ describe("PUT /api/donations/items/:id", () => {
     const res = await request(app)
       .put("/api/donations/items/65b7fe322378c84fb803d307")
       .send(newMockItem);
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should return (400) BadRequestError - amount is not a number", async () => {
+    const mockItem = {
+      amount: "222",
+      name: "John Doe",
+      email: "johnDoe@doa.com"
+    }; 
+
+    const mockResponse = {
+      name: "BadRequestError",
+      message: "please provide a valid amount value.",
+    };
+
+    donationsRepository.create.mockResolvedValue(mockItem);
+    const res = await request(app).post("/api/donations/items").send(mockItem);
     expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual(mockResponse);
   });
