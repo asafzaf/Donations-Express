@@ -13,6 +13,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 if (NODE_ENV === "development") {
+  const fs = require('fs');
+  const path = require('path');
+  // eslint-disable-next-line no-undef
+  const accessLogStream = fs.createWriteStream(path.join(__dirname, '../logs/logs.txt'), { flags: 'a' });
+  app.use(logger('combined', { stream: accessLogStream }));
   app.use(logger("dev"));
 }
 
@@ -20,7 +25,7 @@ app.use("/api/donations", donationsRouter);
 
 app.all("*", (req, res) => {
   const error = new NotFoundError(req.originalUrl);
-  res.status(404).json({
+  res.status(error.statusCode).json({
     name: error.name,
     message: error.message,
   });
