@@ -16,5 +16,5 @@ Good practice for server implementation.
 2. Open POSTMAN app and follow the instructions on the document to manage donations via API.
 
 ## Documentation
-Link to [POSTMAN article]()
+Link to [POSTMAN article](https://documenter.getpostman.com/view/31102943/2s9Yyzbx4j)
 
