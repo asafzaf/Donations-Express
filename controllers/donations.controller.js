@@ -163,5 +163,7 @@ const checkDonationsParams = (body) => {
     body.amount === " "
   ) {
     throw new BadRequestError("amount");
+  } else if (typeof body.amount !== "number") {
+    throw new BadRequestError("amount value");
   }
 };
