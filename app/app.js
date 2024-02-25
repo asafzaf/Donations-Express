@@ -6,9 +6,12 @@ const { donationsRouter } = require("../routers/donations.router");
 const { NotFoundError } = require("../errors/errors");
 
 const app = express();
+const cors = require('cors');
+
 // eslint-disable-next-line no-undef
 const port = process.env.PORT || 8080;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
